@@ -42,6 +42,7 @@
         <textarea class="notice-input" id="notice" name="notice" maxlength="12000" placeholder="Paste the notice here…&#10;&#10;It can be in English or an Indian language." required></textarea>
         <div class="input-meta"><span>Text stays in this session</span><span id="char-count">0 / 12,000</span></div>
         <div class="demo-row"><span class="demo-label">Want to see how it works?</span><button class="text-button" id="demo" type="button">Try a sample notice ↗</button></div>
+        <div style="margin:0 0 12px"><label for="demo-code" style="display:block;font-size:12px;font-weight:700;margin-bottom:5px">Demo access code (only if required)</label><input id="demo-code" type="password" autocomplete="off" placeholder="Enter access code for public demo" style="width:100%;border:1px solid #dce3db;border-radius:9px;padding:10px;font-size:13px"></div>
         <button class="submit" id="submit" type="submit"><span id="submit-label">Explain this notice</span><span class="arrow" aria-hidden="true">→</span></button>
         <div class="privacy"><svg aria-hidden="true" width="15" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5 13 3.4v4.1c0 3.1-2.1 5.6-5 7-2.9-1.4-5-3.9-5-7V3.4l5-1.9Z" stroke="currentColor" stroke-width="1.3"/><path d="m5.8 7.8 1.5 1.5 3-3.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Your notice is sent to Sarvam AI only to generate this explanation. Avoid pasting private or sensitive details.</span></div>
       </form>
@@ -109,7 +110,7 @@
       try {
         const response = await fetch("/api/analyze", {
           method: "POST",
-          headers: {"Content-Type": "application/json"},
+          headers: {"Content-Type": "application/json", "X-Demo-Code": document.querySelector("#demo-code").value.trim()},
           body: JSON.stringify({notice: input.value, language: document.querySelector("#language").value}),
         });
         const data = await response.json();

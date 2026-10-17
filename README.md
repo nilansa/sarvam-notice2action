@@ -1,6 +1,6 @@
 # Notice2Action
 
-Notice2Action turns a government notice into a grounded, step-by-step action guide. The government workflow is the main hackathon demo. The earlier general notice explainer is still available as a bonus mode.
+Notice2Action turns a government notice into a grounded, step-by-step action guide. The government workflow is the main hackathon demo. The earlier general notice explainer is still available as a bonus mode. Select one of 11 guide languages independently of the 23 supported OCR languages.
 
 **Live public demo (temporary Cloudflare tunnel):** [Open Government Workflow](https://identical-saves-slip-moses.trycloudflare.com/government). The link works only while the developer's Mac and the tunnel stay running. **Repository:** [nilansa/sarvam-notice2action](https://github.com/nilansa/sarvam-notice2action).
 
@@ -8,9 +8,9 @@ This is an independent prototype. It is not an official government service and i
 
 ## Government notice workflow
 
-Open <http://127.0.0.1:8000/government> or the public demo link above. **Upload a real PDF/PNG/JPEG or paste a scanned notice image**, wait for Sarvam Vision to extract the text, then choose English, Hindi, Telugu, or Bengali and build the step-by-step workflow. You can also paste notice text directly.
+Open <http://127.0.0.1:8000/government> or the public demo link above. **Upload a real PDF/PNG/JPEG, paste an image, or import a publicly shared Dropbox file**, wait for Sarvam Vision to extract the text, then choose English, Hindi, Telugu, or Bengali and build the step-by-step workflow. You can also paste notice text directly.
 
-The OCR API `POST /api/ocr` accepts image/PDF binary data (maximum 8 MB) with its MIME Content-Type and X-Document-Language header (en-IN, hi-IN, te-IN, or bn-IN); it returns JSON with a text field. OCR and workflow analysis use separate Sarvam APIs; this makes it easy to review/correct the OCR text before analysis. The result is designed to follow the stated order of actions and keep the notice's evidence visible:
+The OCR API `POST /api/ocr` accepts image/PDF binary data (maximum 8 MB) with its MIME Content-Type and X-Document-Language header (en-IN, hi-IN, te-IN, or bn-IN); it returns JSON with a text field. OCR and workflow analysis use separate Sarvam APIs; document language and response language are separately chosen; this makes it easy to review/correct the OCR text before analysis. The result is designed to follow the stated order of actions and keep the notice's evidence visible:
 
 - Each step follows the order and sequence stated in the notice. The guide does not invent an office, counter, prerequisite, fee, document, date, or expected outcome.
 - `source` contains a short exact supporting phrase from the notice, or an empty string when no phrase supports that field. It is evidence for the stated detail, not a guarantee that the notice itself is current or correct.
@@ -43,7 +43,7 @@ The request contains the notice text and a language code: `en`, `hi`, `te`, or `
 
 The response uses the selected language. The schema has no extra fields; an unknown step value is an empty string or list, with unresolved questions collected in `unknowns`.
 
-Requests larger than 80 KB and notices longer than 12,000 characters are rejected. The API key stays on the server; it is never sent to the browser.
+Workflow requests larger than 80 KB and notices longer than 12,000 characters are rejected. The API key stays on the server; it is never sent to the browser. For hosted demos, set the optional private `DEMO_ACCESS_CODE` environment variable. Users must enter that code for any paid analysis/OCR request.
 
 ### Authentic government-issued demo scans
 
@@ -125,9 +125,19 @@ This checks provider connectivity and key configuration; it is not an automated 
 
 ## Deployment
 
-A **temporary public Cloudflare Tunnel** is currently being used for the live demo; it runs through the local Mac and has no uptime guarantee. To deploy permanently, use a Python web-service host that can install `requirements.txt`, run `python app.py`, and provide `SARVAM_API_KEY` through its private secret or environment-variable setting. The app reads `PORT` when the host supplies it. Never place a real key in source control, a committed deployment file, or build logs.
+A **temporary public Cloudflare Tunnel** is currently used for the live demo; it runs through the local Mac and has no uptime guarantee. The repository now also includes a Python Vercel Functions adapter (`api/index.py`), `vercel.json` routing, and `.vercelignore` that excludes the local `.env`.
 
-The prototype has lightweight in-memory abuse throttling (8 requests per IP per minute and 40 globally), but it has no authentication. Do not rely on the temporary tunnel for long-term public hosting; consider stronger abuse protection before a permanent deployment.
+To deploy independently on Vercel:
+1. Sign into Vercel and import the existing GitHub repository (or run `vercel login` and `vercel --prod` after linking).
+2. In Vercel **Project Settings → Environment Variables**, add `SARVAM_API_KEY` as a **private, sensitive** variable and `DEMO_ACCESS_CODE` as another private value. Do not paste either value into code or the README.
+3. Deploy on Vercel and open `/government`. The Python Vercel Function serves pages and real notices and handles the Sarvam calls. Full OCR may take up to 90 seconds.
+4. Give invited users the demo access code separately; the application prompts for it before paid requests. The deployed Vercel frontend limits uploads to 4 MB due to serverless body-size constraints.
+
+The Vercel project **requires account authorization**; having this deployment configuration in GitHub does not itself create a Vercel deployment. Alternative Python hosts may run `python app.py` using `PORT`.
+
+Never commit, publish, or log the API key. Anonymous Dropbox **shared-file links** are supported; private Dropbox account browsing needs a separate OAuth connection.
+
+The prototype has lightweight in-memory abuse throttling (8 requests per IP per minute and 40 globally). Set `DEMO_ACCESS_CODE` for public access control; leaving it unset makes paid endpoints accessible to anyone who finds the URL. Do not rely on the temporary tunnel for long-term public hosting; consider stronger abuse protection before a permanent deployment.
 
 ## Privacy and limitations
 
@@ -135,7 +145,7 @@ The prototype has lightweight in-memory abuse throttling (8 requests per IP per 
 - The server does not write submitted notice text or the API key to app logs; provider failures are returned as a generic error.
 - This is a non-authoritative summary, not a government service or legal/administrative advice. Always verify important instructions with the source notice or responsible office.
 - The model can misunderstand poor OCR, mixed-language text, abbreviations, or ambiguous instructions. Human review is required.
-- PDF/PNG/JPEG upload uses Sarvam Vision; scanned OCR may have errors and is limited to 8 MB per file. There is no saved history, authentication, or offline mode. The rate limiter is basic and process-local; public use needs appropriate privacy and security review.
+- PDF/PNG/JPEG upload uses Sarvam Vision. The original file is previewed alongside editable OCR results; OCR may have errors. The local upload limit is 8 MB; Vercel's is 4 MB. There is no saved history or offline mode. The rate limiter is basic and process-local; public use needs appropriate privacy and security review.
 
 ## Existing implementation references
 
