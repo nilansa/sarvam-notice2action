@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f6f1">
+  <title>Notice2Action — Make every notice clear</title>
+  <style>
+    :root{color-scheme:light;--ink:#17221d;--muted:#64716a;--line:#dce3db;--paper:#fff;--canvas:#f5f6f1;--green:#166b4a;--green-dark:#10543a;--lime:#d8ef9c;--orange:#e98554;--shadow:0 18px 50px rgba(27,49,37,.08)}
+    *{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font:16px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,textarea,select{font:inherit}button:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #83b99c;outline-offset:2px}[hidden]{display:none!important}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    .shell{max-width:1120px;padding:26px 28px 52px;margin:auto}.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:46px}.brand{display:flex;align-items:center;gap:11px;font-size:15px;font-weight:800;letter-spacing:-.03em}.brand-mark{display:grid;place-items:center;width:36px;height:36px;color:white;background:var(--green);border-radius:11px;font-size:19px}.top-note{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}.dot{width:8px;height:8px;background:#55a879;border-radius:50%}
+    .intro{display:grid;grid-template-columns:1fr auto;align-items:end;gap:24px;margin-bottom:27px}.eyebrow{color:var(--green);font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.intro h1{max-width:690px;margin:9px 0 10px;font-size:clamp(36px,5.2vw,60px);line-height:1.04;letter-spacing:-.065em}.intro p{max-width:570px;margin:0;color:var(--muted);font-size:17px}.language-wrap{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#eaf0e7;border:1px solid #dce6d9;border-radius:14px;font-size:13px;font-weight:700;white-space:nowrap}.language-wrap select{padding:4px 22px 4px 2px;color:var(--ink);background:transparent;border:0;font-weight:700;cursor:pointer}
+    .workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px;align-items:stretch}.panel{background:var(--paper);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}.compose{padding:24px}.panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.panel-head h2{margin:0;font-size:16px;letter-spacing:-.02em}.step{color:var(--muted);font-size:12px}.notice-input{display:block;width:100%;min-height:258px;resize:vertical;padding:17px;color:var(--ink);background:#fafbf8;border:1px solid var(--line);border-radius:14px;line-height:1.6}.notice-input::placeholder{color:#89948c}.input-meta{display:flex;justify-content:space-between;gap:12px;margin:8px 2px 14px;color:var(--muted);font-size:12px}.demo-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 17px}.demo-label{color:var(--muted);font-size:12px}.text-button{padding:0;color:var(--green);background:none;border:0;font-size:12px;font-weight:750;cursor:pointer}.text-button:hover{text-decoration:underline}.submit{display:flex;width:100%;align-items:center;justify-content:center;gap:9px;padding:13px 16px;color:white;background:var(--green);border:0;border-radius:12px;font-weight:750;cursor:pointer;transition:background .16s,transform .16s}.submit:hover{background:var(--green-dark);transform:translateY(-1px)}.submit:disabled{opacity:.72;cursor:wait;transform:none}.arrow{font-size:18px;line-height:1}.privacy{display:flex;align-items:flex-start;gap:8px;margin:14px 2px 0;color:var(--muted);font-size:12px}.privacy svg{flex:none;margin-top:2px}
+    .result-panel{min-height:100%;padding:24px;display:flex;flex-direction:column}.result-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.result-top h2{margin:0;font-size:16px;letter-spacing:-.02em}.badge{padding:5px 9px;color:var(--green);background:#edf6e8;border-radius:999px;font-size:11px;font-weight:800}.empty{display:flex;flex:1;min-height:405px;flex-direction:column;align-items:center;justify-content:center;padding:20px;text-align:center;background:linear-gradient(145deg,#f8faf6,#f0f5ec);border:1px dashed #d5e1d4;border-radius:16px}.empty-icon{display:grid;place-items:center;width:58px;height:58px;margin-bottom:15px;color:var(--green);background:#e3f0dc;border-radius:18px;font-size:25px}.empty h3{margin:0 0 7px;font-size:17px}.empty p{max-width:270px;margin:0;color:var(--muted);font-size:13px}.results{display:grid;gap:11px}.result-card{padding:14px 15px;background:#fbfcf9;border:1px solid #e7ece5;border-radius:14px}.result-card h3{display:flex;align-items:center;gap:8px;margin:0 0 7px;font-size:12px;letter-spacing:.04em;text-transform:uppercase}.result-card h3 span{font-size:14px}.result-card p{margin:0;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}.result-card ul{display:grid;gap:5px;margin:0;padding-left:19px;font-size:14px}.deadline-empty{padding:9px 11px;color:#795c28;background:#fff7df;border:1px solid #f2e4b8;border-radius:9px;font-size:13px}.wa-text{padding:10px 12px;background:#f1f6ed;border-radius:10px;white-space:pre-wrap;font-size:14px}.copy-row{display:flex;justify-content:flex-end;margin-top:10px}.copy-button{padding:7px 11px;color:var(--green);background:#fff;border:1px solid #cbdacb;border-radius:9px;font-size:12px;font-weight:750;cursor:pointer}.copy-button:hover{background:#f1f7ee}.status{min-height:22px;margin:10px 2px 0;color:var(--muted);font-size:12px}.status.error{color:#a13932}.footer{display:flex;justify-content:space-between;gap:20px;margin-top:26px;padding-top:15px;color:var(--muted);border-top:1px solid var(--line);font-size:12px}.footer strong{color:var(--ink)}
+    @media(max-width:760px){.shell{padding:19px 16px 34px}.topbar{margin-bottom:35px}.intro{grid-template-columns:1fr;align-items:start;gap:16px;margin-bottom:21px}.intro h1{font-size:clamp(38px,11vw,54px)}.intro p{font-size:15px}.language-wrap{justify-self:start}.workspace{grid-template-columns:1fr}.compose,.result-panel{padding:18px}.notice-input{min-height:210px}.empty{min-height:250px}.footer{flex-direction:column;gap:5px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">↗</span> Notice2Action</div>
+      <div class="top-note"><span class="dot" aria-hidden="true"></span> Built for clearer campus communication</div>
+    </header>
+
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <div class="eyebrow">Less decoding. More doing.</div>
+        <h1 id="page-title">Make every notice<br>clear and actionable.</h1>
+        <p>Paste an official or campus notice. Get the key points, what to do next, and dates that are actually written in it.</p>
+      </div>
+      <label class="language-wrap" for="language">✳ <span>Explain in</span>
+        <select id="language" aria-label="Output language">
+          <option value="en">English</option><option value="hi">हिन्दी · Hindi</option><option value="te">తెలుగు · Telugu</option><option value="bn">বাংলা · Bengali</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="workspace" aria-label="Notice explainer">
+      <form class="panel compose" id="notice-form">
+        <div class="panel-head"><h2>Paste your notice</h2><span class="step">01 / INPUT</span></div>
+        <label class="sr-only" for="notice">Notice text</label>
+        <textarea class="notice-input" id="notice" name="notice" maxlength="12000" placeholder="Paste the notice here…&#10;&#10;It can be in English or an Indian language." required></textarea>
+        <div class="input-meta"><span>Text stays in this session</span><span id="char-count">0 / 12,000</span></div>
+        <div class="demo-row"><span class="demo-label">Want to see how it works?</span><button class="text-button" id="demo" type="button">Try a sample notice ↗</button></div>
+        <button class="submit" id="submit" type="submit"><span id="submit-label">Explain this notice</span><span class="arrow" aria-hidden="true">→</span></button>
+        <div class="privacy"><svg aria-hidden="true" width="15" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5 13 3.4v4.1c0 3.1-2.1 5.6-5 7-2.9-1.4-5-3.9-5-7V3.4l5-1.9Z" stroke="currentColor" stroke-width="1.3"/><path d="m5.8 7.8 1.5 1.5 3-3.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Your notice is sent to Sarvam AI only to generate this explanation. Avoid pasting private or sensitive details.</span></div>
+      </form>
+
+      <section class="panel result-panel" aria-labelledby="result-heading">
+        <div class="result-top"><h2 id="result-heading">Your action brief</h2><span class="badge">02 / CLARITY</span></div>
+        <div class="empty" id="empty-state">
+          <div class="empty-icon" aria-hidden="true">✦</div>
+          <h3>Your next steps will show up here.</h3>
+          <p>Summary, clear actions, stated dates, and a message you can share.</p>
+        </div>
+        <div class="results" id="results" hidden>
+          <article class="result-card"><h3><span aria-hidden="true">◉</span> In a nutshell</h3><p id="summary"></p></article>
+          <article class="result-card"><h3><span aria-hidden="true">✓</span> What to do</h3><ul id="actions"></ul></article>
+          <article class="result-card"><h3><span aria-hidden="true">◷</span> Dates mentioned</h3><ul id="dates"></ul></article>
+          <article class="result-card"><h3><span aria-hidden="true">⚑</span> Deadlines</h3><div id="deadlines"></div></article>
+          <article class="result-card"><h3><span aria-hidden="true">!</span> Caveats</h3><ul id="caveats"></ul></article>
+          <article class="result-card"><h3><span aria-hidden="true">☏</span> Ready to share</h3><div class="wa-text" id="whatsapp"></div><div class="copy-row"><button class="copy-button" type="button" id="copy">Copy message</button></div></article>
+        </div>
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+      </section>
+    </section>
+    <footer class="footer"><span><strong>Notice2Action</strong> · A clearer reading of the text you provide.</span><span>Check the original notice when a detail matters.</span></footer>
+  </main>
+  <script>
+    const form = document.querySelector("#notice-form");
+    const input = document.querySelector("#notice");
+    const status = document.querySelector("#status");
+    const submit = document.querySelector("#submit");
+    const sample = "The Student Affairs Office will conduct the annual scholarship document verification for continuing students. Students must bring the original income certificate, current ID card, and a copy of their latest fee receipt to Room 204, Student Services Block. Verification will be held on 28 April 2027 from 10:00 AM to 4:00 PM. Students who cannot attend should contact the office.";
+
+    input.addEventListener("input", () => {
+      document.querySelector("#char-count").textContent = `${input.value.length.toLocaleString()} / 12,000`;
+    });
+    document.querySelector("#demo").addEventListener("click", () => {
+      input.value = sample;
+      input.dispatchEvent(new Event("input"));
+      input.focus();
+    });
+
+    function fillList(id, values, emptyText) {
+      const list = document.querySelector(`#${id}`);
+      list.replaceChildren();
+      if (!values.length) {
+        const item = document.createElement("li");
+        item.textContent = emptyText;
+        list.append(item);
+        return;
+      }
+      for (const value of values) {
+        const item = document.createElement("li");
+        item.textContent = value;
+        list.append(item);
+      }
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      status.textContent = "Reading the notice and preparing your action brief…";
+      status.className = "status";
+      document.querySelector("#results").hidden = true;
+      document.querySelector("#empty-state").hidden = false;
+      submit.disabled = true;
+      document.querySelector("#submit-label").textContent = "Working…";
+      try {
+        const response = await fetch("/api/analyze", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({notice: input.value, language: document.querySelector("#language").value}),
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Could not analyze this notice.");
+        document.querySelector("#summary").textContent = data.summary;
+        fillList("actions", data.actions, "No specific action was stated.");
+        fillList("dates", data.dates, "No dates were stated in the notice.");
+        const deadlines = document.querySelector("#deadlines");
+        deadlines.replaceChildren();
+        if (data.deadlines.length) {
+          const list = document.createElement("ul");
+          for (const value of data.deadlines) {
+            const item = document.createElement("li");
+            item.textContent = value;
+            list.append(item);
+          }
+          deadlines.append(list);
+        } else {
+          const flag = document.createElement("div");
+          flag.className = "deadline-empty";
+          flag.textContent = "No deadline stated in this notice.";
+          deadlines.append(flag);
+        }
+        fillList("caveats", data.caveats, "No additional caveats identified.");
+        document.querySelector("#whatsapp").textContent = data.whatsapp_message;
+        document.querySelector("#empty-state").hidden = true;
+        document.querySelector("#results").hidden = false;
+        status.textContent = "Action brief ready. Confirm important details with the original notice.";
+      } catch (error) {
+        status.textContent = error.message || "Something went wrong. Please try again.";
+        status.className = "status error";
+      } finally {
+        submit.disabled = false;
+        document.querySelector("#submit-label").textContent = "Explain this notice";
+      }
+    });
+
+    document.querySelector("#copy").addEventListener("click", async () => {
+      const message = document.querySelector("#whatsapp").textContent;
+      try {
+        await navigator.clipboard.writeText(message);
+        status.textContent = "Message copied to clipboard.";
+        status.className = "status";
+      } catch {
+        status.textContent = "Clipboard access is unavailable in this browser.";
+        status.className = "status error";
+      }
+    });
+  </script>
+</body>
+</html>
