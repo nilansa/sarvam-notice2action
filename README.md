@@ -2,11 +2,15 @@
 
 Notice2Action turns a government notice into a grounded, step-by-step action guide. The government workflow is the main hackathon demo. The earlier general notice explainer is still available as a bonus mode.
 
+**Live public demo (temporary Cloudflare tunnel):** [Open Government Workflow](https://identical-saves-slip-moses.trycloudflare.com/government). The link works only while the developer's Mac and the tunnel stay running. **Repository:** [nilansa/sarvam-notice2action](https://github.com/nilansa/sarvam-notice2action).
+
 This is an independent prototype. It is not an official government service and its output is not an authoritative interpretation. Check the original notice or the responsible office whenever a detail matters.
 
 ## Government notice workflow
 
-Open <http://127.0.0.1:8000/government>, paste a notice, choose English, Hindi, Telugu, or Bengali, and submit. The result is designed to follow the stated order of actions and keep the notice's evidence visible:
+Open <http://127.0.0.1:8000/government> or the public demo link above. **Upload a real PDF/PNG/JPEG or paste a scanned notice image**, wait for Sarvam Vision to extract the text, then choose English, Hindi, Telugu, or Bengali and build the step-by-step workflow. You can also paste notice text directly.
+
+The OCR API `POST /api/ocr` accepts image/PDF binary data (maximum 8 MB) with its MIME Content-Type and X-Document-Language header (en-IN, hi-IN, te-IN, or bn-IN); it returns JSON with a text field. OCR and workflow analysis use separate Sarvam APIs; this makes it easy to review/correct the OCR text before analysis. The result is designed to follow the stated order of actions and keep the notice's evidence visible:
 
 - Each step follows the order and sequence stated in the notice. The guide does not invent an office, counter, prerequisite, fee, document, date, or expected outcome.
 - `source` contains a short exact supporting phrase from the notice, or an empty string when no phrase supports that field. It is evidence for the stated detail, not a guarantee that the notice itself is current or correct.
@@ -41,7 +45,16 @@ The response uses the selected language. The schema has no extra fields; an unkn
 
 Requests larger than 80 KB and notices longer than 12,000 characters are rejected. The API key stays on the server; it is never sent to the browser.
 
-### Demo notice and edge cases
+### Authentic government-issued demo scans
+
+Two real government documents are included, each with an original PDF and a PNG preview:
+
+1. [National Testing Agency, 5 January 2026 NEET-UG notice](samples/official/nta_neet_2026.png) — [PDF](samples/official/nta_neet_2026.pdf); official advisory about checking/updating Aadhaar, UDID, and category certificates.
+2. [UIDAI Aadhaar Enrolment and Update (First Amendment) Regulations, 2026](samples/official/uidai_aadhaar_2026.png) — [PDF](samples/official/uidai_aadhaar_2026.pdf); official Gazette publication.
+
+Full attribution and original government source URLs: [OFFICIAL_NOTICE_SOURCES.md](OFFICIAL_NOTICE_SOURCES.md). These are **historical demonstrations**, not current advice. In the app, choose **Use this official notice** to OCR the actual scanned preview and then **Build my service guide**. For the UIDAI document, the preview is only page one of a longer PDF.
+
+### Optional synthetic stress test and edge cases
 
 The supplied example is in [`samples/government_notice.txt`](samples/government_notice.txt). It states that applicants collect Form IC-12, attach specified photocopies, pay a service fee, retain the receipt, and submit at Counter 5 during stated hours. Its conditions and gaps are useful for checking grounded output:
 
@@ -80,7 +93,7 @@ Open <http://127.0.0.1:8000>. Stop the server with `Ctrl+C` in its terminal.
 
 ## 60–90 second live demo
 
-Use the timed walkthrough in [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md). Start the app before presenting, then open `/government`, load the included notice, select a language, and submit it. Point out the ordered steps, exact source excerpts, minor-applicant branch, and the explicitly unknown fee amount and collection timing. The live request depends on network and provider response time.
+Use [DEMO_SCRIPT.md](DEMO_SCRIPT.md) for the live walkthrough. Start with a **real NTA notice PNG**, show live Sarvam Vision OCR, then ask Sarvam-105B to build the workflow. For a stronger branch/unknown-data stress test afterward, paste the separately labelled synthetic example `samples/government_notice.txt`. Live requests consume API credits.
 
 ## Bonus: general notice explainer
 
@@ -112,9 +125,9 @@ This checks provider connectivity and key configuration; it is not an automated 
 
 ## Deployment
 
-No public deployment is confirmed. To deploy after obtaining an API key, use a Python web-service host that can install `requirements.txt`, run `python app.py`, and provide `SARVAM_API_KEY` through its private secret or environment-variable setting. The app reads `PORT` when the host supplies it. Never place a real key in source control, a committed deployment file, or build logs.
+A **temporary public Cloudflare Tunnel** is currently being used for the live demo; it runs through the local Mac and has no uptime guarantee. To deploy permanently, use a Python web-service host that can install `requirements.txt`, run `python app.py`, and provide `SARVAM_API_KEY` through its private secret or environment-variable setting. The app reads `PORT` when the host supplies it. Never place a real key in source control, a committed deployment file, or build logs.
 
-Before making the service public, check current provider costs and usage limits and add suitable access controls and abuse protection. The current prototype has no authentication or per-user rate limiting.
+The prototype has lightweight in-memory abuse throttling (8 requests per IP per minute and 40 globally), but it has no authentication. Do not rely on the temporary tunnel for long-term public hosting; consider stronger abuse protection before a permanent deployment.
 
 ## Privacy and limitations
 
@@ -122,9 +135,11 @@ Before making the service public, check current provider costs and usage limits 
 - The server does not write submitted notice text or the API key to app logs; provider failures are returned as a generic error.
 - This is a non-authoritative summary, not a government service or legal/administrative advice. Always verify important instructions with the source notice or responsible office.
 - The model can misunderstand poor OCR, mixed-language text, abbreviations, or ambiguous instructions. Human review is required.
-- The prototype has no document upload, saved history, authentication, rate limiting, or offline mode. Public use needs appropriate privacy and security review.
+- PDF/PNG/JPEG upload uses Sarvam Vision; scanned OCR may have errors and is limited to 8 MB per file. There is no saved history, authentication, or offline mode. The rate limiter is basic and process-local; public use needs appropriate privacy and security review.
 
 ## Existing implementation references
 
 - [Sarvam Chat Completion API](https://docs.sarvam.ai/api/api-guides-tutorials/chat-completion/overview) — model IDs, Python SDK, JSON mode, and response parsing.
 - [Sarvam Developer Quickstart](https://docs.sarvam.ai/api/getting-started/quickstart) — API key setup and SDK installation.
+
+- [Sarvam Vision Document AI](https://docs.sarvam.ai/api/api-guides-tutorials/document-intelligence/overview) — real scans/PDFs OCR.

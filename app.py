@@ -2,8 +2,16 @@
 
 import json
 import os
+import time
+from collections import deque
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from threading import Lock
+
+from doc_ocr import (
+    DOCUMENT_LANGUAGES, DOCUMENT_TYPES, MAX_DOCUMENT_BYTES,
+    digitise_document, valid_document,
+)
 
 
 ROOT = Path(__file__).resolve().parent
@@ -12,6 +20,25 @@ GOVERNMENT = ROOT / "static" / "government.html"
 LANGUAGES = {"en": "English", "hi": "Hindi", "te": "Telugu", "bn": "Bengali"}
 MAX_BODY_BYTES = 80_000
 MAX_NOTICE_CHARS = 12_000
+OFFICIAL_SAMPLES = {
+    f"/samples/official/{name}.{extension}": (ROOT / "samples" / "official" / f"{name}.{extension}", mime)
+    for name in ("nta_neet_2026", "uidai_aadhaar_2026")
+    for extension, mime in (("png", "image/png"), ("pdf", "application/pdf"))
+}
+API_REQUESTS = deque()
+API_RATE_LOCK = Lock()
+
+
+def allow_api_request(ip):
+    # shortcut: process-local limits; use a shared limiter if deploying multiple workers.
+    now = time.monotonic()
+    with API_RATE_LOCK:
+        while API_REQUESTS and API_REQUESTS[0][0] <= now - 60:
+            API_REQUESTS.popleft()
+        if len(API_REQUESTS) >= 40 or sum(peer == ip for _, peer in API_REQUESTS) >= 8:
+            return False
+        API_REQUESTS.append((now, ip))
+        return True
 
 
 class MissingAPIKeyError(Exception):
@@ -74,6 +101,10 @@ NOTICE END"""
 
 
 class NoticeHandler(BaseHTTPRequestHandler):
+    def log_message(self, format, *args):
+        # Request targets and provider failures can contain private document text.
+        pass
+
     def send_json(self, status, payload):
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -84,24 +115,38 @@ class NoticeHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
+        content_type = "text/html; charset=utf-8"
         if self.path in ("/", "/static/index.html"):
             page = INDEX
         elif self.path == "/government":
             page = GOVERNMENT
+        elif self.path in OFFICIAL_SAMPLES:
+            page, content_type = OFFICIAL_SAMPLES[self.path]
         else:
             self.send_error(404)
             return
-        body = page.read_bytes()
+        try:
+            body = page.read_bytes()
+        except OSError:
+            self.send_error(404)
+            return
         self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Type", content_type)
+        self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-cache")
         self.end_headers()
         self.wfile.write(body)
 
     def do_POST(self):
-        if self.path not in ("/api/analyze", "/api/government"):
+        if self.path not in ("/api/analyze", "/api/government", "/api/ocr"):
             self.send_json(404, {"error": "Endpoint not found."})
+            return
+        if not allow_api_request(self.client_address[0]):
+            self.send_json(429, {"error": "Too many requests. Try again in a minute."})
+            return
+        if self.path == "/api/ocr":
+            self.handle_ocr()
             return
         try:
             size = int(self.headers.get("Content-Length", "0"))
@@ -109,6 +154,9 @@ class NoticeHandler(BaseHTTPRequestHandler):
                 self.send_json(413, {"error": "Request must be under 80 KB."})
                 return
             payload = json.loads(self.rfile.read(size))
+            if not isinstance(payload, dict):
+                self.send_json(400, {"error": "Send a valid JSON request."})
+                return
             notice = payload.get("notice", "")
             language = payload.get("language", "")
             if not isinstance(notice, str) or not notice.strip():
@@ -117,7 +165,7 @@ class NoticeHandler(BaseHTTPRequestHandler):
             if len(notice) > MAX_NOTICE_CHARS:
                 self.send_json(413, {"error": "Keep the notice under 12,000 characters."})
                 return
-            if language not in LANGUAGES:
+            if not isinstance(language, str) or language not in LANGUAGES:
                 self.send_json(400, {"error": "Choose English, Hindi, Telugu, or Bengali."})
                 return
             if self.path == "/api/government":
@@ -139,6 +187,48 @@ class NoticeHandler(BaseHTTPRequestHandler):
         except Exception:
             # Provider errors can include request details; keep them out of the response and logs.
             self.send_json(502, {"error": "Analysis failed. Check the API key, account credits, and connection, then try again."})
+
+    def handle_ocr(self):
+        mime = self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()
+        language = self.headers.get("X-Document-Language", "en-IN")
+        if mime not in DOCUMENT_TYPES:
+            self.send_json(415, {"error": "Send a PNG, JPEG, or PDF document."})
+            return
+        if language not in DOCUMENT_LANGUAGES:
+            self.send_json(400, {"error": "Choose a supported document language."})
+            return
+        lengths = self.headers.get_all("Content-Length", [])
+        if len(lengths) != 1 or not lengths[0].isascii() or not lengths[0].isdigit() or self.headers.get("Transfer-Encoding"):
+            self.send_json(400, {"error": "Send a valid document body and Content-Length."})
+            return
+        try:
+            size = int(lengths[0])
+        except ValueError:
+            self.send_json(400, {"error": "Send a valid Content-Length."})
+            return
+        if size > MAX_DOCUMENT_BYTES:
+            self.send_json(413, {"error": "Document must be at most 8 MB."})
+            return
+        if size < 1:
+            self.send_json(400, {"error": "Send a nonempty document."})
+            return
+        try:
+            self.connection.settimeout(10)
+            data = self.rfile.read(size)
+            if len(data) != size or not valid_document(data, mime):
+                self.send_json(400, {"error": "Document does not match its declared file type."})
+                return
+            load_dotenv()
+            api_key = os.environ.get("SARVAM_API_KEY", "").strip()
+            if not api_key:
+                self.send_json(503, {"error": "Document processing is not configured."})
+                return
+            text = digitise_document(data, mime, language, api_key)
+            self.send_json(200, {"text": text[:MAX_NOTICE_CHARS]})
+        except TimeoutError:
+            self.send_json(504, {"error": "Document processing timed out. Try again later."})
+        except Exception:
+            self.send_json(502, {"error": "Document processing failed. Try again later."})
 
 
 def main():

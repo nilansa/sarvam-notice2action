@@ -1,14 +1,17 @@
-# Live demo script (60–90 seconds)
+# Live hackathon demo: Notice2Action (90 seconds)
 
-Before presenting, start the server with `.venv/bin/python app.py`, confirm the API key is configured privately, and open <http://127.0.0.1:8000/government>. Keep [`samples/government_notice.txt`](samples/government_notice.txt) ready to paste. A live result uses Sarvam API credits and its response time depends on the network and provider.
+**Public live app:** https://identical-saves-slip-moses.trycloudflare.com/government
 
-| Time | Action and narration |
-| --- | --- |
-| 0:00–0:10 | “Government notices often hide a sequence of offices, documents, and conditions. This page turns one notice into steps while keeping the source evidence visible.” |
-| 0:10–0:20 | Paste the included District Revenue Officer notice. Keep the output language set to English, or select Hindi, Telugu, or Bengali. |
-| 0:20–0:40 | Submit the notice. As the result appears, point out the ordered actions: collect Form IC-12, fill it and attach the named photocopies, pay the fee and keep the receipt, then submit at Counter 5 during the stated hours. |
-| 0:40–1:00 | Show the `source` excerpts. Point to the under-18 parent/guardian ID condition and the missing-photocopy return condition. “These branches come from explicit phrases in the notice.” |
-| 1:00–1:20 | Point to `unknowns`: the fee amount is omitted, and processing and certificate collection timing are not given. “The guide should leave these unknown, not guess.” |
-| 1:20–1:30 | “This is a non-authoritative reading aid, not an official government service. Check the notice or responsible office for important details.” |
+| Time | What to do | What to say |
+| --- | --- | --- |
+| 0:00–0:15 | Open the government workflow link and scroll to **Real government notices**. | “These are genuine government-issued documents, not a generated mockup.” |
+| 0:15–0:35 | Click **Use this official notice** on the **NTA NEET-UG 2026** card. | “Sarvam Vision reads the original notice image in English/Hindi and extracts usable text. Review this text before analysis.” |
+| 0:35–1:00 | Click **Build my service guide** with English selected; wait for live Sarvam-105B result. | “Here are the actions and document checks in order, with evidence from the notice. Missing steps or deadlines stay unknown.” |
+| 1:00–1:20 | Point out **Steps**, **Conditional routes**, **Unknowns**, and **Source excerpt**. | “The model is not permitted to invent an office, deadline, fee, or counter.” |
+| 1:20–1:30 | Click **Copy checklist**. | “People get an actionable list in English, Hindi, Telugu, or Bengali.” |
 
-If the result invents a fee, document, office, deadline, or collection date, call it out as an error and do not present that claim as fact. A result that preserves unknowns and quotes the notice is the successful demo outcome.
+**Optional stronger conditional flow:** Paste the clearly labelled fictional stress-test text at `samples/government_notice.txt`. It includes a minor applicant, missing photocopy failure, several counters, unspecified fee, and unspecified collection date; use it only as a synthetic edge-case test.
+
+**Original, verifiable sources:** [NTA 2026 public notice](https://cdnbbsr.s3waas.gov.in/s37bc1ec1d9c3426357e69acd5bf320061/uploads/2026/01/202601051550861314.pdf) and [UIDAI 2026 Gazette](https://egazette.gov.in/WriteReadData/2026/272354.pdf).
+
+**Before presenting:** Check Mac is awake, localhost:8000 is running, and the Cloudflare tunnel still returns HTTP 200. A temporary tunnel has no uptime guarantee. Public examples are historical and output is not authoritative government advice.
