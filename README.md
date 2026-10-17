@@ -1,14 +1,58 @@
 # Notice2Action
 
-Notice2Action turns a pasted campus or official notice into a short explanation and a practical action brief. It is a small hackathon demo built with Python's standard library, one HTML page, and Sarvam AI's Python SDK.
+Notice2Action turns a government notice into a grounded, step-by-step action guide. The government workflow is the main hackathon demo. The earlier general notice explainer is still available as a bonus mode.
 
-## What it does
+This is an independent prototype. It is not an official government service and its output is not an authoritative interpretation. Check the original notice or the responsible office whenever a detail matters.
 
-- Explains a notice in English, Hindi, Telugu, or Bengali.
-- Shows a concise summary, concrete actions, dates stated in the notice, stated deadlines, caveats, and a WhatsApp-ready message.
-- Explicitly flags **“No deadline stated in this notice”** when no deadline is provided.
-- Includes a demo notice, loading and error feedback, a character limit, and a copy button.
-- Keeps the API key on the server. The browser never receives it.
+## Government notice workflow
+
+Open <http://127.0.0.1:8000/government>, paste a notice, choose English, Hindi, Telugu, or Bengali, and submit. The result is designed to follow the stated order of actions and keep the notice's evidence visible:
+
+- Each step follows the order and sequence stated in the notice. The guide does not invent an office, counter, prerequisite, fee, document, date, or expected outcome.
+- `source` contains a short exact supporting phrase from the notice, or an empty string when no phrase supports that field. It is evidence for the stated detail, not a guarantee that the notice itself is current or correct.
+- Missing or unclear details go in `unknowns`. Other unknown fields stay empty (`""` or `[]`); the workflow does not fill them with guesses.
+- Notice conditions are represented as `branches`, and stated time limits as `deadlines`. A time or date is not called a deadline unless the notice says it is one.
+- The notice is untrusted input. Instructions embedded in it cannot change the extraction rules or request hidden system information. The output distinguishes what the notice states from unresolved details and assumptions; assumptions are not presented as facts.
+
+### Output contract
+
+`POST /api/government` returns one JSON object with exactly these fields:
+
+```text
+service: string
+plain_language: string
+preparation: string[]
+steps: { number: integer, title: string, office: string, action: string,
+         documents: string[], prerequisite: string, when: string, fee: string,
+         outcome: string, mistakes: string[], source: string }[]
+branches: { condition: string, path: string }[]
+deadlines: string[]
+unknowns: string[]
+final_check: string[]
+```
+
+The request contains the notice text and a language code: `en`, `hi`, `te`, or `bn`. For example:
+
+```json
+{"notice":"Paste the notice text here","language":"en"}
+```
+
+The response uses the selected language. The schema has no extra fields; an unknown step value is an empty string or list, with unresolved questions collected in `unknowns`.
+
+Requests larger than 80 KB and notices longer than 12,000 characters are rejected. The API key stays on the server; it is never sent to the browser.
+
+### Demo notice and edge cases
+
+The supplied example is in [`samples/government_notice.txt`](samples/government_notice.txt). It states that applicants collect Form IC-12, attach specified photocopies, pay a service fee, retain the receipt, and submit at Counter 5 during stated hours. Its conditions and gaps are useful for checking grounded output:
+
+- Applicants under 18 must attach a parent/guardian ID.
+- A missing photocopy means the application is returned.
+- The fee amount is not stated; do not invent one.
+- Processing time and the certificate collection date will be communicated on the acknowledgment. Do not invent either date.
+- “Working days” is not defined in the notice. Do not guess which days the office is open.
+- The notice does not state extra documents, payment methods, or a certificate pickup counter. Do not add them.
+
+The guide is a reading aid. Recheck the source notice and confirm unresolved administrative details with the responsible office.
 
 ## Run locally
 
@@ -20,71 +64,67 @@ uv venv
 uv pip install --python .venv/bin/python -r requirements.txt
 ```
 
-Create or open `.env` at the project root and put your key from the [Sarvam dashboard](https://dashboard.sarvam.ai/) after the equals sign. The local handoff includes a blank template, but `.env` is intentionally not committed, so create it when cloning the repository. Restrict its local permissions with `chmod 600 .env`:
+Create `.env` in the project root and add a key from the [Sarvam dashboard](https://dashboard.sarvam.ai/). The real key is a local secret and must stay out of Git; `.env` is excluded by `.gitignore`. Restrict local file permissions with `chmod 600 .env`:
 
 ```dotenv
 SARVAM_API_KEY=your_real_key_here
 ```
 
-Keep the key private. `.env` is excluded by `.gitignore`. Then start the app:
+Keep the key private. Start the app:
 
 ```sh
 .venv/bin/python app.py
 ```
 
-Open <http://127.0.0.1:8000>. To stop the server, press `Ctrl+C` in the terminal.
+Open <http://127.0.0.1:8000>. Stop the server with `Ctrl+C` in its terminal.
 
-### Demo flow
+## 60–90 second live demo
 
-1. Select an output language.
-2. Click **Try a sample notice** or paste a notice. The sample includes an event date and a contact instruction but no stated submission deadline.
-3. Click **Explain this notice**. Review the summary, actions, dates, deadline flag, and caveats.
-4. Copy the short message for sharing.
+Use the timed walkthrough in [`DEMO_SCRIPT.md`](DEMO_SCRIPT.md). Start the app before presenting, then open `/government`, load the included notice, select a language, and submit it. Point out the ordered steps, exact source excerpts, minor-applicant branch, and the explicitly unknown fee amount and collection timing. The live request depends on network and provider response time.
 
-## API
+## Bonus: general notice explainer
 
-`POST /api/analyze` accepts a JSON object with a notice and one of the supported language codes:
+The home page at <http://127.0.0.1:8000/> keeps the earlier, broader notice explainer. Select an output language, paste a notice or click **Try a sample notice**, then click **Explain this notice**. It returns a summary, actions, dates, deadlines, caveats, and a short shareable message. Its endpoint is `POST /api/analyze` with a JSON body such as:
 
 ```json
 {"notice":"Paste notice text here","language":"en"}
 ```
 
-The response is JSON with `summary`, `actions`, `dates`, `deadlines`, `caveats`, and `whatsapp_message`. The server limits notices to 12,000 characters and rejects request bodies larger than 80 KB, allowing for multi-byte Indic text. It serves the same-origin page and API from one process, with no CORS or database layer.
+The app supports English, Hindi, Telugu, and Bengali in both workflows.
 
-## Architecture
+## Tests and smoke check
 
-- `app.py` serves `static/index.html` using `ThreadingHTTPServer` and handles `POST /api/analyze`.
-- The handler validates request size, text, and language, then calls `SarvamAI.chat.completions` using `sarvam-105b-conversations` and JSON mode.
-- The model is asked to distinguish dates from deadlines and to leave deadline items empty when the notice states none. The server parses and checks the returned JSON fields before sending them to the page.
-- The browser builds result lists with `textContent`, so notice/model text is displayed as text rather than executable HTML.
-- The `.env` loader reads only `SARVAM_API_KEY` and does not replace a key already set in the process environment.
+Run the government workflow's HTTP tests with:
 
-## API key and privacy
+```sh
+.venv/bin/python -m unittest discover -s tests -v
+```
 
-Do not commit, paste into an issue, or share the contents of `.env`. The provided `.env` starts with exactly `SARVAM_API_KEY=` and contains no placeholder credential. The application returns a setup message without contacting Sarvam while the value is empty. API errors are returned as a generic message; submitted notice text and the key are not written to app logs. A notice is sent to Sarvam AI for analysis, so do not submit personal, confidential, or sensitive information.
+They cover page serving, request validation, language selection, the API-key error path, and the workflow response. Workflow generation is mocked, so these tests do not make a Sarvam request. For a manual end-to-end check, use the supplied sample and confirm the age condition, missing-copy consequence, omitted fee amount, and unprovided processing/collection date. Check that unknown values stay empty and every source excerpt is an exact phrase from the input.
 
-## Smoke call
-
-After adding your real key and installing the dependency, this makes one live chat-completion call and prints the reply:
+The existing provider smoke script makes one real Sarvam request:
 
 ```sh
 .venv/bin/python smoke.py
 ```
 
-It exits without making a request if the key is missing.
+This checks provider connectivity and key configuration; it is not an automated test of the government workflow. It uses API credits and may incur provider charges. Check current Sarvam pricing and account limits before a live demo. No prices are assumed in this README.
 
 ## Deployment
 
-The server reads `PORT` when provided and binds to `0.0.0.0` for a hosting service; without `PORT`, it binds only to `127.0.0.1` for local use. A Python web-service host can install `requirements.txt`, start `python app.py`, and supply `SARVAM_API_KEY` through its private environment-variable or secret setting. Never put a real key in a deployment file, repository variable committed to source, or build log. Set usage limits and review the provider's current pricing before a public demo; this prototype has no authentication or per-user rate limiting.
+No public deployment is confirmed. To deploy after obtaining an API key, use a Python web-service host that can install `requirements.txt`, run `python app.py`, and provide `SARVAM_API_KEY` through its private secret or environment-variable setting. The app reads `PORT` when the host supplies it. Never place a real key in source control, a committed deployment file, or build logs.
 
-## Known limitations
+Before making the service public, check current provider costs and usage limits and add suitable access controls and abuse protection. The current prototype has no authentication or per-user rate limiting.
 
-- This is an aid for reading, not an authoritative interpretation. Always check the source notice for important dates, eligibility, or official instructions.
-- The model may misunderstand text, especially low-quality OCR, mixed-language text, or ambiguous abbreviations. The prompt asks it not to infer missing facts, but generated output still needs human review.
-- There is no image/PDF upload, persistent history, authentication, rate limiting, or offline mode. Input stays in the page until it is replaced or the page is closed; each analysis is sent to Sarvam.
-- The local server is intended for a single-user demo. Public deployment needs access controls, abuse protection, and an appropriate privacy review.
+## Privacy and limitations
 
-## Sarvam references
+- Submitted notice text is sent to Sarvam AI to generate the requested result. Do not submit personal, confidential, or sensitive information.
+- The server does not write submitted notice text or the API key to app logs; provider failures are returned as a generic error.
+- This is a non-authoritative summary, not a government service or legal/administrative advice. Always verify important instructions with the source notice or responsible office.
+- The model can misunderstand poor OCR, mixed-language text, abbreviations, or ambiguous instructions. Human review is required.
+- The prototype has no document upload, saved history, authentication, rate limiting, or offline mode. Public use needs appropriate privacy and security review.
 
-- [Chat Completion API](https://docs.sarvam.ai/api/api-guides-tutorials/chat-completion/overview) — V1 model IDs, Python SDK call, JSON mode, and response parsing.
-- [Developer Quickstart](https://docs.sarvam.ai/api/getting-started/quickstart) — API key setup and SDK installation.
+## Existing implementation references
+
+- [Sarvam Chat Completion API](https://docs.sarvam.ai/api/api-guides-tutorials/chat-completion/overview) — model IDs, Python SDK, JSON mode, and response parsing.
+- [Sarvam Developer Quickstart](https://docs.sarvam.ai/api/getting-started/quickstart) — API key setup and SDK installation.

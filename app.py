@@ -8,6 +8,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "static" / "index.html"
+GOVERNMENT = ROOT / "static" / "government.html"
 LANGUAGES = {"en": "English", "hi": "Hindi", "te": "Telugu", "bn": "Bengali"}
 MAX_BODY_BYTES = 80_000
 MAX_NOTICE_CHARS = 12_000
@@ -83,10 +84,14 @@ class NoticeHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
-        if self.path not in ("/", "/static/index.html"):
+        if self.path in ("/", "/static/index.html"):
+            page = INDEX
+        elif self.path == "/government":
+            page = GOVERNMENT
+        else:
             self.send_error(404)
             return
-        body = INDEX.read_bytes()
+        body = page.read_bytes()
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
@@ -95,7 +100,7 @@ class NoticeHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self):
-        if self.path != "/api/analyze":
+        if self.path not in ("/api/analyze", "/api/government"):
             self.send_json(404, {"error": "Endpoint not found."})
             return
         try:
@@ -115,7 +120,18 @@ class NoticeHandler(BaseHTTPRequestHandler):
             if language not in LANGUAGES:
                 self.send_json(400, {"error": "Choose English, Hindi, Telugu, or Bengali."})
                 return
-            self.send_json(200, analyze_notice(notice.strip(), LANGUAGES[language]))
+            if self.path == "/api/government":
+                import gov_workflow
+
+                try:
+                    result = gov_workflow.generate_workflow(notice.strip(), LANGUAGES[language])
+                    self.send_json(200, result)
+                except gov_workflow.MissingAPIKeyError:
+                    self.send_json(503, {"error": "Add your Sarvam API key to .env, then restart the app."})
+                except Exception:
+                    self.send_json(502, {"error": "Workflow generation failed. Check the API key, account credits, and connection, then try again."})
+            else:
+                self.send_json(200, analyze_notice(notice.strip(), LANGUAGES[language]))
         except MissingAPIKeyError as exc:
             self.send_json(503, {"error": str(exc)})
         except (json.JSONDecodeError, UnicodeDecodeError, AttributeError, TypeError):

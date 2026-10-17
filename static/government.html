@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f2ec">
+  <title>Government workflow guide — Notice2Action</title>
+  <style>
+    :root{color-scheme:light;--ink:#182622;--muted:#68746f;--line:#d9dfd9;--paper:#fff;--canvas:#f4f2ec;--green:#17634f;--green-dark:#104b3b;--mint:#e6f1e9;--gold:#e5bd72;--rose:#f7eee7;--shadow:0 18px 55px rgba(35,48,42,.08)}
+    *{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font:15px/1.55 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,textarea,select{font:inherit}button:focus-visible,textarea:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #82ad96;outline-offset:3px}[hidden]{display:none!important}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    .shell{max-width:1160px;margin:auto;padding:24px 28px 48px}.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:48px}.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.035em}.brand-mark{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;color:white;background:var(--green);font-size:17px}.top-tag{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:650;letter-spacing:.06em;text-transform:uppercase}.top-tag:before{content:"";width:7px;height:7px;border-radius:50%;background:#62a178}
+    .hero{display:grid;grid-template-columns:minmax(0,1fr) 260px;align-items:center;gap:30px;margin-bottom:30px}.eyebrow{display:flex;align-items:center;gap:9px;color:var(--green);font-size:11px;font-weight:850;letter-spacing:.15em;text-transform:uppercase}.eyebrow:before{content:"";width:23px;height:1px;background:var(--green)}h1{max-width:760px;margin:12px 0 12px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(40px,6vw,69px);font-weight:500;line-height:.99;letter-spacing:-.055em} .hero-copy{max-width:620px;margin:0;color:var(--muted);font-size:16px}.route-card{position:relative;min-height:160px;padding:18px 20px;background:#e8eee5;border:1px solid #d9e2d7;border-radius:20px;overflow:hidden}.route-card:after{content:"";position:absolute;right:-36px;bottom:-68px;width:174px;height:174px;border:1px solid rgba(23,99,79,.17);border-radius:50%;box-shadow:0 0 0 15px rgba(23,99,79,.035),0 0 0 31px rgba(23,99,79,.025)}.route-label{color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.route-line{position:relative;z-index:1;display:grid;gap:14px;margin-top:14px}.route-stop{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:750}.route-stop span{display:grid;place-items:center;width:26px;height:26px;border-radius:9px;color:var(--green);background:#fff;font-size:11px}.route-stop:last-child span{color:#684c1b;background:#f8ecd4}
+    .workspace{display:grid;grid-template-columns:minmax(330px,.84fr) minmax(0,1.16fr);gap:18px;align-items:start}.panel{background:var(--paper);border:1px solid var(--line);border-radius:21px;box-shadow:var(--shadow)}.compose{position:sticky;top:16px;padding:23px}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.panel-head h2,.result-head h2{margin:0;font-size:16px;letter-spacing:-.025em}.step-label,.output-label{color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.1em}.notice-input{display:block;width:100%;min-height:260px;resize:vertical;padding:15px;color:var(--ink);background:#fafbf8;border:1px solid var(--line);border-radius:13px;line-height:1.65}.notice-input::placeholder{color:#8a958f}.input-meta{display:flex;justify-content:space-between;gap:10px;margin:8px 2px 13px;color:var(--muted);font-size:11px}.sample-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 13px;margin-bottom:14px;background:#f7f4ed;border:1px solid #eee8dc;border-radius:12px}.sample-row span{color:var(--muted);font-size:11px}.sample-button{padding:0;color:var(--green);background:none;border:0;font-size:11px;font-weight:800;white-space:nowrap;cursor:pointer}.sample-button:hover{text-decoration:underline}.language-row{display:grid;grid-template-columns:1fr 1fr;align-items:center;gap:10px;margin:0 0 14px}.language-row label{font-size:12px;font-weight:750}.language-row select{width:100%;padding:9px 10px;color:var(--ink);background:white;border:1px solid var(--line);border-radius:10px;font-size:12px}.submit{display:flex;width:100%;justify-content:center;align-items:center;gap:10px;padding:13px 16px;color:white;background:var(--green);border:0;border-radius:11px;font-weight:800;cursor:pointer;transition:background .15s,transform .15s}.submit:hover{background:var(--green-dark);transform:translateY(-1px)}.submit:disabled{opacity:.72;cursor:wait;transform:none}.arrow{font-size:18px;line-height:1}.privacy{display:flex;gap:8px;margin:13px 2px 0;color:var(--muted);font-size:11px;line-height:1.45}.privacy svg{flex:none;margin-top:1px}
+    .result-panel{min-height:390px;padding:22px}.result-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}.result-head .output-label{padding:5px 8px;color:var(--green);background:#edf5ed;border-radius:999px}.empty{display:flex;min-height:340px;flex-direction:column;align-items:center;justify-content:center;padding:26px;text-align:center;background:linear-gradient(145deg,#fafbf8,#eff4ed);border:1px dashed #d6dfd6;border-radius:15px}.empty-icon{display:grid;place-items:center;width:55px;height:55px;margin-bottom:14px;color:var(--green);background:#e4efe5;border-radius:17px;font-size:22px}.empty h3{margin:0 0 7px;font-family:Georgia,"Times New Roman",serif;font-size:21px;font-weight:500}.empty p{max-width:320px;margin:0;color:var(--muted);font-size:12px}.results{display:grid;gap:12px}.service-card{padding:18px 19px;color:white;background:var(--green);border-radius:15px}.service-kicker{margin-bottom:4px;color:#c8dfd0;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.service-card h3{margin:0 0 8px;font-family:Georgia,"Times New Roman",serif;font-size:25px;font-weight:500;line-height:1.15}.service-card p{margin:0;color:#f0f6f1;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}.evidence-note{display:flex;gap:10px;padding:12px 14px;color:#594b31;background:#fbf5e8;border:1px solid #eee1c4;border-radius:12px;font-size:11px}.evidence-note strong{white-space:nowrap}.result-card{padding:15px 16px;background:#fff;border:1px solid #e4e9e3;border-radius:14px}.result-title{display:flex;align-items:center;gap:9px;margin:0 0 12px;font-size:12px;font-weight:850;letter-spacing:.07em;text-transform:uppercase}.result-title .icon{display:grid;place-items:center;width:25px;height:25px;color:var(--green);background:var(--mint);border-radius:8px;font-size:13px}.result-card ul{display:grid;gap:7px;margin:0;padding-left:19px;font-size:13px}.result-card li{padding-left:2px;overflow-wrap:anywhere}.not-stated{padding:8px 10px;color:#735e37;background:#fbf6ea;border:1px solid #efe5cd;border-radius:9px;font-size:12px}.timeline{display:grid;gap:0}.timeline-step{position:relative;display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;padding:0 0 16px}.timeline-step:not(:last-child):before{content:"";position:absolute;left:19px;top:38px;bottom:0;width:1px;background:#cad9cd}.step-number{position:relative;z-index:1;display:grid;place-items:center;width:39px;height:39px;border:1px solid #cbdace;border-radius:12px;color:var(--green);background:#f1f7f1;font-size:12px;font-weight:850}.step-content{min-width:0;padding:13px 14px;background:#fafbf8;border:1px solid #e6ebe5;border-radius:12px}.step-content h4{margin:0 0 3px;font-size:15px;line-height:1.35;overflow-wrap:anywhere}.office{margin:0 0 11px;color:var(--green);font-size:11px;font-weight:750;overflow-wrap:anywhere}.field{margin-top:10px}.field-label{display:block;margin-bottom:4px;color:#748078;font-size:9px;font-weight:850;letter-spacing:.1em;text-transform:uppercase}.field p{margin:0;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}.field ul{font-size:12px}.source-quote{margin:5px 0 0;padding:8px 10px;color:#625b4b;background:#f4f0e7;border-left:2px solid var(--gold);font-family:Georgia,"Times New Roman",serif;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}.branch-list{display:grid;gap:8px}.branch{padding:11px 12px;background:#f5f8f3;border:1px solid #e3eae1;border-radius:10px}.branch strong{display:block;margin-bottom:3px;color:var(--green);font-size:11px}.branch p{margin:0;font-size:12px;overflow-wrap:anywhere}.final-list{list-style:none;padding:0!important}.final-list li{padding:0!important}.check-row{display:flex;align-items:flex-start;gap:9px;cursor:pointer}.check-row input{flex:none;width:16px;height:16px;margin:2px 0 0;accent-color:var(--green)}.check-row span{font-size:12px;overflow-wrap:anywhere}.check-row input:checked+span{color:#7b8780;text-decoration:line-through}.copy-row{display:flex;justify-content:flex-end;gap:8px;margin:13px 0 1px}.utility-button{padding:8px 11px;color:var(--green);background:white;border:1px solid #cbd9ce;border-radius:9px;font-size:11px;font-weight:800;cursor:pointer}.utility-button:hover{background:#f1f7f0}.status{min-height:20px;margin:10px 2px 0;color:var(--muted);font-size:11px}.status.error{color:#a03932}.footer{display:flex;justify-content:space-between;gap:18px;margin-top:25px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}.footer strong{color:var(--ink)}
+    .sample-button:disabled{opacity:.6;cursor:wait}
+    @media(max-width:850px){.shell{padding:20px 18px 36px}.topbar{margin-bottom:34px}.hero{grid-template-columns:1fr 215px;gap:18px}.workspace{grid-template-columns:minmax(280px,.88fr) minmax(0,1.12fr)}.compose{padding:18px}.result-panel{padding:18px}}
+    @media(max-width:680px){.shell{padding:17px 14px 30px}.topbar{margin-bottom:29px}.top-tag{font-size:9px}.hero{grid-template-columns:1fr;margin-bottom:20px}.hero h1{font-size:clamp(41px,12vw,58px)}.hero-copy{font-size:14px}.route-card{min-height:0;padding:14px 16px}.route-line{grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:10px}.route-stop{gap:6px;font-size:10px}.route-stop span{width:23px;height:23px}.workspace{grid-template-columns:1fr;gap:13px}.compose{position:static}.notice-input{min-height:205px}.result-panel{padding:16px}.empty{min-height:245px}.footer{flex-direction:column;gap:5px}}
+    @media(max-width:390px){.language-row{grid-template-columns:1fr}.top-tag{max-width:140px;text-align:right}.sample-row{align-items:flex-start;flex-direction:column;gap:5px}.result-head{align-items:flex-start}.copy-row{justify-content:stretch}.utility-button{flex:1}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">§</span> Notice2Action</div>
+      <div class="top-tag">Government service guide</div>
+    </header>
+
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <div class="eyebrow">A clearer route through paperwork</div>
+        <h1 id="page-title">Know what to bring.<br>Know where to go.</h1>
+        <p class="hero-copy">Turn a government notice into a practical service workflow. See the stated steps, required documents, office details, and what the notice leaves unanswered.</p>
+      </div>
+      <aside class="route-card" aria-label="The workflow guide covers three stages">
+        <div class="route-label">Your guide, in order</div>
+        <div class="route-line"><div class="route-stop"><span>01</span> Prepare</div><div class="route-stop"><span>02</span> Visit</div><div class="route-stop"><span>03</span> Confirm</div></div>
+      </aside>
+    </section>
+
+    <section class="workspace" aria-label="Government notice workflow">
+      <form class="panel compose" id="government-form">
+        <div class="panel-head"><h2>Start with the notice</h2><span class="step-label">YOUR SOURCE</span></div>
+        <label class="sr-only" for="notice">Government notice text</label>
+        <textarea class="notice-input" id="notice" name="notice" maxlength="12000" placeholder="Paste the full notice here…" required></textarea>
+        <div class="input-meta"><span>Use the wording as published</span><span id="char-count">0 / 12,000</span></div>
+        <div class="sample-row"><span>Sample only fills this box; submit to generate a guide.</span><button class="sample-button" id="sample" type="button">Load sample ↗</button></div>
+        <div class="language-row"><label for="language">Guide language</label><select id="language" name="language"><option value="en">English</option><option value="hi">हिन्दी · Hindi</option><option value="te">తెలుగు · Telugu</option><option value="bn">বাংলা · Bengali</option></select></div>
+        <button class="submit" id="submit" type="submit"><span id="submit-label">Build my service guide</span><span class="arrow" aria-hidden="true">→</span></button>
+        <div class="privacy"><svg aria-hidden="true" width="15" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5 13 3.4v4.1c0 3.1-2.1 5.6-5 7-2.9-1.4-5-3.9-5-7V3.4l5-1.9Z" stroke="currentColor" stroke-width="1.3"/><path d="m5.8 7.8 1.5 1.5 3-3.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Your notice is sent to generate this guide. Avoid including private or sensitive information.</span></div>
+      </form>
+
+      <section class="panel result-panel" aria-labelledby="result-heading" aria-busy="false">
+        <div class="result-head"><h2 id="result-heading">Your service workflow</h2><span class="output-label">CLEAR · IN ORDER</span></div>
+        <div class="empty" id="empty-state">
+          <div class="empty-icon" aria-hidden="true">⌖</div>
+          <h3 id="empty-title">A practical guide starts here.</h3>
+          <p id="empty-copy">Paste a notice, choose a language, then build your guide. The sample is never presented as generated output.</p>
+        </div>
+        <div class="results" id="results" hidden>
+          <article class="service-card"><div class="service-kicker">Service</div><h3 id="service"></h3><p id="plain-language"></p></article>
+          <div class="evidence-note"><strong>How to read this</strong><span>Quoted excerpts identify what the notice states. “Not stated” marks missing details; treat other guidance as a plain-language reading and confirm important points with the issuing office.</span></div>
+          <article class="result-card"><h3 class="result-title"><span class="icon" aria-hidden="true">✓</span> Prepare before you go</h3><ul id="preparation"></ul></article>
+          <article class="result-card"><h3 class="result-title"><span class="icon" aria-hidden="true">↗</span> Steps at the office</h3><div class="timeline" id="steps"></div></article>
+          <article class="result-card"><h3 class="result-title"><span class="icon" aria-hidden="true">⑂</span> If your situation differs</h3><div class="branch-list" id="branches"></div></article>
+          <article class="result-card"><h3 class="result-title"><span class="icon" aria-hidden="true">◷</span> Deadlines and timing</h3><ul id="deadlines"></ul></article>
+          <article class="result-card"><h3 class="result-title"><span class="icon" aria-hidden="true">?</span> Details not stated</h3><ul id="unknowns"></ul></article>
+          <article class="result-card"><h3 class="result-title"><span class="icon" aria-hidden="true">☑</span> Before you leave</h3><ul class="final-list" id="final-check"></ul></article>
+          <div class="copy-row"><button class="utility-button" type="button" id="copy">Copy checklist</button><button class="utility-button" type="button" id="share">Share checklist</button></div>
+        </div>
+        <div class="status" id="status" role="status" aria-live="polite"></div>
+      </section>
+    </section>
+    <footer class="footer"><span><strong>Notice2Action</strong> · A clearer reading of the notice you provide.</span><span>For official decisions, use the original notice and issuing office.</span></footer>
+  </main>
+  <script>
+    const form = document.querySelector("#government-form");
+    const input = document.querySelector("#notice");
+    const status = document.querySelector("#status");
+    const submit = document.querySelector("#submit");
+    const resultPanel = document.querySelector(".result-panel");
+    const sampleButton = document.querySelector("#sample");
+    const language = document.querySelector("#language");
+    const sampleNotice = "Office of the District Revenue Officer. For income certificate attestation, applicants must first collect Form IC-12 at the Reception Desk, Ground Floor. Fill the form and attach photocopies of Aadhaar and income proof. Applicants under 18 must also attach a parent/guardian ID. Pay the stated service fee at the Cash Counter, First Floor (the amount is not specified in this notice), retain the receipt, then submit the filled form with receipt at Counter 5, Second Floor between 10 AM and 2 PM on working days. Staff will issue an acknowledgment slip. If any photocopy is missing, the application will be returned. Processing time and certificate collection date will be communicated on the acknowledgment.";
+    const labels = {notStated:"Not stated in the notice.",noBranches:"No conditional route was identified."};
+
+    input.addEventListener("input", () => {
+      document.querySelector("#char-count").textContent = `${input.value.length.toLocaleString()} / 12,000`;
+      if (!document.querySelector("#results").hidden) {
+        document.querySelector("#results").hidden = true;
+        document.querySelector("#empty-state").hidden = false;
+        document.querySelector("#empty-title").textContent = "Notice changed.";
+        document.querySelector("#empty-copy").textContent = "Submit again to build a guide for the current text.";
+        status.textContent = "The guide is hidden because the notice changed.";
+        status.className = "status";
+      }
+    });
+    language.addEventListener("change", () => {
+      if (!document.querySelector("#results").hidden) {
+        document.querySelector("#results").hidden = true;
+        document.querySelector("#empty-state").hidden = false;
+        document.querySelector("#empty-title").textContent = "Language changed.";
+        document.querySelector("#empty-copy").textContent = "Submit again to build the guide in the selected language.";
+        status.textContent = "The guide is hidden because its language changed.";
+        status.className = "status";
+      }
+    });
+    sampleButton.addEventListener("click", () => {
+      input.value = sampleNotice;
+      input.dispatchEvent(new Event("input"));
+      input.focus();
+      document.querySelector("#empty-title").textContent = "Sample ready to send.";
+      document.querySelector("#empty-copy").textContent = "This example has not been analyzed. Submit it to request a live guide.";
+      status.textContent = "Sample loaded. Submit it to request a live guide.";
+      status.className = "status";
+    });
+
+    function assertStrings(value, name) {
+      if (!Array.isArray(value) || value.some(item => typeof item !== "string")) throw new Error(`The guide has an invalid ${name} field.`);
+      return value;
+    }
+    function validateGuide(data) {
+      const stringFields = ["service", "plain_language"];
+      if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("The service returned an invalid guide.");
+      for (const key of stringFields) if (typeof data[key] !== "string") throw new Error(`The guide has an invalid ${key} field.`);
+      for (const key of ["preparation", "branches", "deadlines", "unknowns", "final_check", "steps"]) {
+        if (!Array.isArray(data[key])) throw new Error(`The guide has an invalid ${key} field.`);
+      }
+      for (const [index, step] of data.steps.entries()) {
+        if (!step || typeof step !== "object" || !Number.isInteger(step.number) || step.number < 1) throw new Error(`Workflow step ${index + 1} is invalid.`);
+        for (const key of ["title", "office", "action", "prerequisite", "when", "fee", "outcome", "source"]) {
+          if (typeof step[key] !== "string") throw new Error(`Workflow step ${index + 1} has an invalid ${key} field.`);
+        }
+        assertStrings(step.documents, `steps[${index}].documents`);
+        assertStrings(step.mistakes, `steps[${index}].mistakes`);
+      }
+      for (const [index, branch] of data.branches.entries()) {
+        if (!branch || typeof branch.condition !== "string" || typeof branch.path !== "string") throw new Error(`Conditional route ${index + 1} is invalid.`);
+      }
+      for (const key of ["preparation", "deadlines", "unknowns", "final_check"]) assertStrings(data[key], key);
+      return data;
+    }
+    function node(tag, className, value) {
+      const element = document.createElement(tag);
+      if (className) element.className = className;
+      if (value !== undefined) element.textContent = value;
+      return element;
+    }
+    function fillList(id, values, emptyText = labels.notStated) {
+      const list = document.querySelector(`#${id}`);
+      list.replaceChildren();
+      if (!values.length) {
+        const item = node("li", "not-stated", emptyText);
+        list.append(item);
+        return;
+      }
+      for (const value of values) list.append(node("li", "", value));
+    }
+    function addField(container, title, value, values) {
+      const field = node("div", "field");
+      field.append(node("span", "field-label", title));
+      if (values) {
+        const list = node("ul");
+        if (values.length) for (const value of values) list.append(node("li", "", value));
+        else list.append(node("li", "not-stated", labels.notStated));
+        field.append(list);
+      } else {
+        field.append(node("p", value ? "" : "not-stated", value || labels.notStated));
+      }
+      container.append(field);
+    }
+    function renderGuide(data) {
+      document.querySelector("#service").textContent = data.service || "Service not stated";
+      document.querySelector("#plain-language").textContent = data.plain_language || labels.notStated;
+      fillList("preparation", data.preparation);
+      fillList("deadlines", data.deadlines);
+      fillList("unknowns", data.unknowns, "No additional unknowns were returned.");
+
+      const steps = document.querySelector("#steps");
+      steps.replaceChildren();
+      if (!data.steps.length) {
+        steps.append(node("div", "not-stated", "No workflow steps were returned."));
+      }
+      for (const step of data.steps) {
+        const item = node("article", "timeline-step");
+        item.append(node("div", "step-number", String(step.number).padStart(2, "0")));
+        const content = node("div", "step-content");
+        content.append(node("h4", "", step.title || "Step"));
+        content.append(node("p", "office", step.office || labels.notStated));
+        addField(content, "Action", step.action);
+        addField(content, "Documents", "", step.documents);
+        addField(content, "Prerequisite", step.prerequisite);
+        addField(content, "When", step.when);
+        addField(content, "Fee", step.fee);
+        addField(content, "Outcome", step.outcome);
+        addField(content, "Common mistakes", "", step.mistakes);
+        const source = node("div", "field");
+        source.append(node("span", "field-label", "Source excerpt · stated in the notice"));
+        source.append(node("blockquote", "source-quote", step.source || "No supporting quote supplied."));
+        content.append(source);
+        item.append(content);
+        steps.append(item);
+      }
+
+      const branches = document.querySelector("#branches");
+      branches.replaceChildren();
+      if (!data.branches.length) branches.append(node("div", "not-stated", labels.noBranches));
+      for (const branch of data.branches) {
+        const card = node("div", "branch");
+        card.append(node("strong", "", branch.condition || labels.notStated));
+        card.append(node("p", "", branch.path || labels.notStated));
+        branches.append(card);
+      }
+
+      const checks = document.querySelector("#final-check");
+      checks.replaceChildren();
+      if (!data.final_check.length) checks.append(node("li", "not-stated", labels.notStated));
+      for (const value of data.final_check) {
+        const item = node("li");
+        const label = node("label", "check-row");
+        const checkbox = node("input");
+        checkbox.type = "checkbox";
+        label.append(checkbox, node("span", "", value));
+        item.append(label);
+        checks.append(item);
+      }
+      document.querySelector("#empty-state").hidden = true;
+      document.querySelector("#results").hidden = false;
+    }
+    function checklistText() {
+      const lines = [`${document.querySelector("#service").textContent}`, "", document.querySelector("#plain-language").textContent, "", "PREPARATION"];
+      for (const item of document.querySelectorAll("#preparation li")) lines.push(`- ${item.textContent}`);
+      lines.push("", "STEPS");
+      for (const step of document.querySelectorAll(".timeline-step")) {
+        lines.push(`${step.querySelector(".step-number").textContent}. ${step.querySelector("h4").textContent}`);
+        for (const field of step.querySelectorAll(".field")) {
+          const title = field.querySelector(".field-label").textContent;
+          const value = field.querySelector(".source-quote")?.textContent ?? field.querySelector("p")?.textContent ?? [...field.querySelectorAll("li")].map(item => item.textContent).join("; ");
+          lines.push(`  ${title}: ${value}`);
+        }
+      }
+      lines.push("", "CONDITIONAL ROUTES");
+      for (const item of document.querySelectorAll("#branches .branch")) lines.push(`- ${item.querySelector("strong").textContent}: ${item.querySelector("p").textContent}`);
+      if (!document.querySelector("#branches .branch")) lines.push(`- ${document.querySelector("#branches").textContent.trim()}`);
+      for (const [heading, id] of [["DEADLINES", "deadlines"], ["NOT STATED / UNKNOWN", "unknowns"]]) {
+        lines.push("", heading);
+        for (const item of document.querySelectorAll(`#${id} li`)) lines.push(`- ${item.textContent}`);
+      }
+      lines.push("", "FINAL CHECK");
+      for (const item of document.querySelectorAll("#final-check li")) {
+        const checkbox = item.querySelector("input");
+        lines.push(`- [${checkbox?.checked ? "x" : " "}] ${item.querySelector("span")?.textContent || item.textContent}`);
+      }
+      return lines.join("\n");
+    }
+    async function copyChecklist() {
+      await navigator.clipboard.writeText(checklistText());
+      status.textContent = "Checklist copied.";
+      status.className = "status";
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (!input.value.trim()) {
+        input.focus();
+        status.textContent = "Paste a government notice before building the guide.";
+        status.className = "status error";
+        return;
+      }
+      status.textContent = "Reading the notice and arranging the service steps…";
+      status.className = "status";
+      document.querySelector("#empty-title").textContent = "Building your service guide…";
+      document.querySelector("#empty-copy").textContent = "The notice is being organized into preparation, office steps, and details to confirm.";
+      document.querySelector("#results").hidden = true;
+      document.querySelector("#empty-state").hidden = false;
+      resultPanel.setAttribute("aria-busy", "true");
+      submit.disabled = true;
+      input.disabled = true;
+      language.disabled = true;
+      sampleButton.disabled = true;
+      document.querySelector("#submit-label").textContent = "Building guide…";
+      try {
+        const response = await fetch("/api/government", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({notice: input.value, language: language.value}),
+        });
+        let data;
+        try { data = await response.json(); }
+        catch { throw new Error("The service returned a response that could not be read. Please try again."); }
+        if (!response.ok) throw new Error(typeof data?.error === "string" ? data.error : "Could not build a guide from this notice.");
+        renderGuide(validateGuide(data));
+        status.textContent = "Guide ready. Check source excerpts and confirm unclear details with the issuing office.";
+      } catch (error) {
+        document.querySelector("#empty-title").textContent = "We couldn’t build this guide.";
+        document.querySelector("#empty-copy").textContent = error.message || "Something went wrong. Please try again.";
+        status.textContent = "Your notice is still here. You can try again.";
+        status.className = "status error";
+      } finally {
+        resultPanel.setAttribute("aria-busy", "false");
+        submit.disabled = false;
+        input.disabled = false;
+        language.disabled = false;
+        sampleButton.disabled = false;
+        document.querySelector("#submit-label").textContent = "Build my service guide";
+      }
+    });
+    document.querySelector("#copy").addEventListener("click", async () => {
+      try { await copyChecklist(); }
+      catch { status.textContent = "Clipboard access is unavailable in this browser."; status.className = "status error"; }
+    });
+    document.querySelector("#share").addEventListener("click", async () => {
+      const text = checklistText();
+      try {
+        if (navigator.share) await navigator.share({title: "Government service checklist", text});
+        else await copyChecklist();
+        if (navigator.share) { status.textContent = "Checklist ready to share."; status.className = "status"; }
+      } catch (error) {
+        if (error.name === "AbortError") return;
+        status.textContent = "Sharing is unavailable. Try copying the checklist instead.";
+        status.className = "status error";
+      }
+    });
+  </script>
+</body>
+</html>
