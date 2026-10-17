@@ -1,6 +1,7 @@
 """Tiny local web app for explaining Indian-language notices."""
 
 import json
+import hmac
 import os
 import time
 from collections import deque
@@ -17,7 +18,7 @@ from doc_ocr import (
 ROOT = Path(__file__).resolve().parent
 INDEX = ROOT / "static" / "index.html"
 GOVERNMENT = ROOT / "static" / "government.html"
-LANGUAGES = {"en": "English", "hi": "Hindi", "te": "Telugu", "bn": "Bengali"}
+LANGUAGES = {"en":"English", "hi":"Hindi", "bn":"Bengali", "ta":"Tamil", "te":"Telugu", "kn":"Kannada", "ml":"Malayalam", "mr":"Marathi", "gu":"Gujarati", "pa":"Punjabi", "od":"Odia"}
 MAX_BODY_BYTES = 80_000
 MAX_NOTICE_CHARS = 12_000
 OFFICIAL_SAMPLES = {
@@ -139,11 +140,18 @@ class NoticeHandler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_POST(self):
-        if self.path not in ("/api/analyze", "/api/government", "/api/ocr"):
+        if self.path not in ("/api/analyze", "/api/government", "/api/ocr", "/api/dropbox-fetch"):
             self.send_json(404, {"error": "Endpoint not found."})
+            return
+        demo_code = os.environ.get("DEMO_ACCESS_CODE", "")
+        if demo_code and not hmac.compare_digest(self.headers.get("X-Demo-Code", ""), demo_code):
+            self.send_json(403, {"error": "Enter the demo access code to use Sarvam AI."})
             return
         if not allow_api_request(self.client_address[0]):
             self.send_json(429, {"error": "Too many requests. Try again in a minute."})
+            return
+        if self.path == "/api/dropbox-fetch":
+            self.handle_dropbox()
             return
         if self.path == "/api/ocr":
             self.handle_ocr()
@@ -187,6 +195,31 @@ class NoticeHandler(BaseHTTPRequestHandler):
         except Exception:
             # Provider errors can include request details; keep them out of the response and logs.
             self.send_json(502, {"error": "Analysis failed. Check the API key, account credits, and connection, then try again."})
+
+    def handle_dropbox(self):
+        """Proxy a publicly shared Dropbox document, not a private account."""
+        from dropbox_import import fetch_shared_document
+        try:
+            sizes = self.headers.get_all("Content-Length", [])
+            if len(sizes) != 1 or not sizes[0].isdigit() or int(sizes[0]) > 4096:
+                self.send_json(400, {"error": "Provide a Dropbox shared-file link."})
+                return
+            payload = json.loads(self.rfile.read(int(sizes[0])))
+            if not isinstance(payload, dict) or not isinstance(payload.get("url"), str):
+                self.send_json(400, {"error": "Provide a Dropbox shared-file link."})
+                return
+            data, mime = fetch_shared_document(payload["url"])
+            self.send_response(200)
+            self.send_header("Content-Type", mime)
+            self.send_header("Content-Length", str(len(data)))
+            self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(data)
+        except (ValueError, OSError, TimeoutError, json.JSONDecodeError):
+            self.send_json(422, {"error": "Could not import this Dropbox file. Use a publicly shared PDF, PNG or JPEG link."})
+        except Exception:
+            self.send_json(502, {"error": "Dropbox import is temporarily unavailable."})
 
     def handle_ocr(self):
         mime = self.headers.get("Content-Type", "").split(";", 1)[0].strip().lower()

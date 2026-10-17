@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "functions": {
+    "api/index.py": {
+      "maxDuration": 120,
+      "includeFiles": "{app.py,gov_workflow.py,doc_ocr.py,dropbox_import.py,static/**,samples/official/**}"
+    }
+  },
+  "rewrites": [
+    {"source": "/", "destination": "/api/index?route="},
+    {"source": "/(.*)", "destination": "/api/index?route=$1"}
+  ]
+}

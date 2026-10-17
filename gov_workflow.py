@@ -4,7 +4,7 @@ import json
 import os
 
 
-LANGUAGES = {"English", "Hindi", "Telugu", "Bengali"}
+LANGUAGES = {"English","Hindi","Bengali","Tamil","Telugu","Kannada","Malayalam","Marathi","Gujarati","Punjabi","Odia"}
 MAX_STEPS = 20
 WORKFLOW_FIELDS = {
     "service", "plain_language", "preparation", "steps", "branches",
@@ -107,15 +107,24 @@ def _validate_workflow(result, notice):
             or any(not isinstance(branch[field], str) for field in BRANCH_FIELDS)
         ):
             raise ValueError("The model returned an invalid workflow schema.")
+    # No source quote means that a proposed step cannot be checked against the notice.
+    # Suppress it rather than publishing unsupported directions or office locations.
+    grounded = [step for step in result["steps"] if step["source"] and step["source"] in notice]
+    for i, step in enumerate(grounded, 1):
+        step["number"] = i
+    result["steps"] = grounded
+    for field in ("preparation", "deadlines", "unknowns", "final_check"):
+        result[field] = list(dict.fromkeys(x.strip() for x in result[field] if x.strip()))
+    result["branches"] = [b for b in result["branches"] if b["condition"].strip() and b["path"].strip()]
     return result
 
 
 def generate_workflow(notice: str, language: str) -> dict:
-    """Return a validated workflow in English, Hindi, Telugu, or Bengali."""
+    """Return a source-grounded workflow in a Sarvam-105B language."""
     if not isinstance(notice, str) or not notice.strip():
         raise ValueError("A non-empty notice is required.")
     if not isinstance(language, str) or language not in LANGUAGES:
-        raise ValueError("Language must be English, Hindi, Telugu, or Bengali.")
+        raise ValueError("Unsupported guide language.")
 
     from app import load_dotenv
     from sarvamai import SarvamAI
@@ -132,11 +141,13 @@ Return exactly one JSON object with exactly these keys and types:
 Rules:
 - Write all user-facing values in {language}; keep each source excerpt in the notice's original wording and language.
 - Use only facts explicitly stated in the notice. Do not infer offices, counters, documents, fees, prerequisites, order, eligibility, schedules, deadlines, outcomes, or processing details. Do not add assumptions.
-- Leave unknown string fields as "" and unknown lists as []. Put important missing or conflicting details in unknowns, clearly saying what the notice does and does not state.
-- List steps in the exact chronological order given. Number them consecutively from 1. Include only supported actions; use at most {MAX_STEPS} steps.
+- Leave unknown string fields as "" and unknown lists as []. Put only consequential missing details needed to complete a real action in unknowns, not every absent optional field (don't list invented missing counters, fees or deadlines).
+- List only source-supported actions in chronological order, numbered from 1. Do not turn recommendations into requirements: preserve distinctions such as "advised to check" vs "must submit". If this notice is informational or regulatory without an actionable office process, do not fabricate a physical visit or counter.
+- Write concise steps, at most {MAX_STEPS}; do not create a step just to fill a timeline.
+- Do not repeat the same instruction as multiple actions. Avoid duplicate steps across preparation and final checks.
 - Put only explicitly required documents in documents. Include conditional requirements only with their stated condition, and represent each stated conditional route in branches.
 - Use when only for explicitly stated dates, times, days, or timing conditions. Use fee only for a fee amount or fee rule explicitly stated; do not invent an amount.
-- Use mistakes only for explicitly stated errors and consequences. Use outcome only for an explicitly stated result.
+- Use mistakes ONLY for an explicitly stated mistake AND stated consequence. Do not invent pitfalls. Use outcome only for an explicitly stated result.
 - For every step, source must be a short, exact, contiguous quote from the notice that supports that step. Copy it without translation or correction; if you cannot reproduce an exact substring, use "". Never invent or approximate a source quote, and omit any unsupported step.
 - Put only explicitly stated deadlines in deadlines. Make final_check a concise checklist derived only from stated requirements.
 - Do not add keys, commentary, Markdown fences, or text outside the JSON object."""

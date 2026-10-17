@@ -9,7 +9,7 @@ from zipfile import ZipFile
 
 MAX_DOCUMENT_BYTES = 8 * 1024 * 1024
 DOCUMENT_TYPES = {"image/png": ".png", "image/jpeg": ".jpg", "application/pdf": ".pdf"}
-DOCUMENT_LANGUAGES = {"en-IN", "hi-IN", "te-IN", "bn-IN"}
+DOCUMENT_LANGUAGES = {f"{code}-IN" for code in ("en","hi","bn","ta","te","kn","ml","mr","gu","pa","od","as","brx","doi","ks","kok","mai","mni","ne","sa","sat","sd","ur")}
 
 
 def valid_document(data, mime):
